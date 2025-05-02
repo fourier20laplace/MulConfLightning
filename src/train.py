@@ -18,7 +18,9 @@ rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 #       (which is used as a base for paths in "configs/paths/default.yaml")
 #       (this way all filepaths are the same no matter where you run the code)
 # - loading environment variables from ".env" in root dir
-#
+#* 向搜索路径中加入项目根目录 ；设置项目根目录环境变量；加载项目根目录下的.env文件
+#* 感觉确实让整个项目变得非常容易迁移 但因为我的数据集在外面 所以还有些绝对目录在代码里 
+# *否则好像一行home/lmh...都不用写 全部基于根目录去定位 而根目录可以用.project-root文件来指示
 # you can remove it if you:
 # 1. either install project as a package or move entry files to project root dir
 # 2. set `root_dir` to "." in "configs/paths/default.yaml"
@@ -104,6 +106,8 @@ def train(cfg: DictConfig) -> Tuple[Dict[str, Any], Dict[str, Any]]:
 
     return metric_dict, object_dict
 
+# Relative paths are interpreted relative to the declaring python file.
+#* 相对路径是相对于声明python文件的 即当前文件位置
 
 @hydra.main(version_base="1.3", config_path="../configs", config_name="train.yaml")
 def main(cfg: DictConfig) -> Optional[float]:
@@ -112,7 +116,8 @@ def main(cfg: DictConfig) -> Optional[float]:
     :param cfg: DictConfig configuration composed by Hydra.
     :return: Optional[float] with optimized metric value.
     """
-    # apply extra utilities
+    # apply extra utilities 
+    #* 这部分可以自己去写想实现的特性 并通过config/extras/default.yaml文件来控制是否触发
     # (e.g. ask for tags if none are provided in cfg, print cfg tree, etc.)
     extras(cfg)
 
@@ -129,4 +134,6 @@ def main(cfg: DictConfig) -> Optional[float]:
 
 
 if __name__ == "__main__":
+    #限制一下cpu
+    # torch.set_num_threads(30)
     main()

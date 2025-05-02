@@ -1,0 +1,24 @@
+_target_: src.models.skempi_module.SKEMPI2LitModule
+
+optimizer:
+  _target_: torch.optim.Adam
+  _partial_: true
+  # lr: 0.001
+  lr: 3e-5
+  weight_decay: 0.0
+
+scheduler:
+  _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+  _partial_: true
+  mode: min
+  factor: 0.5
+  patience: 2
+  # factor: 0.1
+  # patience: 10
+
+Task:
+  _target_: src.models.components.NewTask.NewTask
+  mode: ???
+
+# compile model for faster training with pytorch 2.0
+compile: false

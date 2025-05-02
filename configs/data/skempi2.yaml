@@ -1,0 +1,10 @@
+_target_: src.data.skempi_datamodule.SKEMPI2DataModule
+knn_neighbors_num: 128
+knn_agents_num: 20
+batch_size: 128 # Needs to be divisible by the number of devices (e.g., if in a distributed setup)
+pin_memory: True
+num_workers: 16
+debug: False
+model_mode: ???
+# data_dir: ${paths.data_dir}
+# train_val_test_split: [55_000, 5_000, 10_000]
