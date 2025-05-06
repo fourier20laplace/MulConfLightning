@@ -2,6 +2,9 @@ from .Model import myModel
 from .Model import Model_w_attention
 from .Model0430 import Model_w_attention_v2
 from .Model0502 import Model_w_attention_v3
+from .Model0502_v2 import Model_w_attention_v4
+from .Model_v6 import Model_v6
+from .Model_v7 import Model_v7
 import torch.nn as nn
 from torchdrug import layers
 from torchdrug.layers import geometry
@@ -25,6 +28,12 @@ class NewTask(nn.Module):
             self.model = Model_w_attention_v2(mode)
         elif mode == 4:
             self.model = Model_w_attention_v3(mode)
+        elif mode == 5:
+            self.model = Model_w_attention_v4(mode)
+        elif mode == 6:
+            self.model = Model_v6(mode)
+        elif mode == 7:
+            self.model = Model_v7(mode)
         else:
             raise ValueError("mode must be legal")
         # self.graph_construction_model = layers.GraphConstruction(node_layers=[geometry.AlphaCarbonNode()],
@@ -45,7 +54,17 @@ class NewTask(nn.Module):
             geometry.KNNEdge(k=6, min_distance=6)], edge_feature="gearnet")
         self.loss_fn = nn.MSELoss()
         self.mode=mode
-
+        
+        # 注册钩子查看梯度
+    #     for name,param in self.model.named_parameters():
+    #         if param.requires_grad:
+    #             param.register_hook(self._make_hook(name))
+                
+    # def _make_hook(self, name):
+    #     def hook(grad):
+    #         print(f"Grad for {name}: {grad.norm().item():.4f}")
+    #     return hook
+    
     def organizeBigG(self, batchsize, ConfDict):
         tmp_dict = defaultdict(list)
         for key in ConfDict:
@@ -86,8 +105,13 @@ class NewTask(nn.Module):
         #* 似乎graph_construction只能batch之后再做
         wtG = self.graph_construction_model(batch["wtG"])
         mtG = self.graph_construction_model(batch["mtG"])
-        if self.mode == 3 or self.mode == 4:
+        if self.mode in [3,4,5]:
             return self.model(dual, wtG, mtG, batch['mask'], batch['cov_wt_tensor'], batch['cov_mut_tensor'])
+        elif self.mode in [6]:
+            return self.model(dual, wtG, mtG, batch['mask'], batch['repr_wt_tensor'], batch['repr_mut_tensor'])
+        elif self.mode in [7]:
+            return self.model(dual, wtG, mtG, batch['mask'], batch['roi_repr_wt_tensor'], batch['roi_repr_mut_tensor'],
+                              batch['wt_mask_roi'], batch['mut_mask_roi'],batch['wt']['PDB_id'])
         else:
             if self.use_cov:
                 bs = len(wtG)
@@ -100,16 +124,3 @@ class NewTask(nn.Module):
 
     def target(self, batch):
         return batch['ddG'], -batch['ddG']
-
-    # def _eval(self, batch):
-    #     # 在eval阶段不再使用对偶损失 仅仅观察原始样本对
-    #     pre1 = self.predict(batch, dual=False)
-    #     pre1 = pre1.squeeze(-1)
-    #     lab1 = batch['ddG']
-    #     loss = self.loss_fn(pre1, lab1)
-    #     # 计算相关系数
-    #     # pre1 = pre1.detach().cpu().numpy()
-    #     # lab1 = lab1.detach().cpu().numpy()
-    #     # correlation, _ = pearsonr(pre1, lab1)
-    #     # 似乎应该把所有的样本放在一起去求相关系数？
-    #     return loss, pre1, lab1

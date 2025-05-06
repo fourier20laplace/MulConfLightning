@@ -41,7 +41,11 @@ task_name: "train_conf"
 # you can overwrite this in experiment configs
 # overwrite from command line with `python train.py tags="[first_tag, second_tag]"`
 tags: ["dev"]
-
+#或许tags里面不能加空格了？
+logger:
+  tensorboard:
+    version: ${join:${tags}}
+    
 # set False to skip model training
 train: True
 

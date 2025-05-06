@@ -73,12 +73,9 @@ class SKEMPIV2Dataset(Dataset):
         batch['mtG']=pt_mt_G
         return batch
 
-#* 更新:将graph_construction过程放进数据集构建中
-from torchdrug.layers import geometry
-from torchdrug import layers
 import torch
 class SKEMPIV2Dataset0429(Dataset):
-    def __init__(self, data_df, is_train, knn_num, knn_agents_num):
+    def __init__(self, data_df, is_train, knn_num, knn_agents_num,rand):
         super(SKEMPIV2Dataset0429, self).__init__()
 
         self.data_df = data_df
@@ -86,11 +83,9 @@ class SKEMPIV2Dataset0429(Dataset):
         self.is_train = is_train
         self.knn_num = knn_num
         self.knn_agents_num = knn_agents_num
-        self.graph_construction_model = layers.GraphConstruction(node_layers=[geometry.AlphaCarbonNode()],
-                                                                 edge_layers=[geometry.SequentialEdge(max_distance=1),
-                                                                              geometry.SpatialEdge(
-                                                                     radius=7.0, min_distance=6),
-            geometry.KNNEdge(k=6, min_distance=6)], edge_feature="gearnet")
+        self.rand=rand
+        if self.rand:
+            print(">>>>>>>>>>>>>>>>>>rand")
 
     def __len__(self):
         return self.data_batches
@@ -116,7 +111,10 @@ class SKEMPIV2Dataset0429(Dataset):
         PDB_wt_file_path=os.path.join(wt_file_path,"af_ref.pdb")
         # cov_wt_tensor=torch.load(os.path.join(wt_file_path,"af_cov_tensor.pt"))
         # cov_wt_tensor=torch.load(os.path.join(wt_file_path,"af_corr_tensor.pt"))
-        cov_wt_tensor=torch.load(os.path.join(wt_file_path,"rand.pt"))
+        if self.rand:
+            cov_wt_tensor=torch.load(os.path.join(wt_file_path,"rand.pt"))
+        else:
+            cov_wt_tensor=torch.load(os.path.join(wt_file_path,"af_corr_tensor.pt"))
         
         pt_wt_G=data.Protein.from_pdb(PDB_wt_file_path, atom_feature=None, bond_feature="length", residue_feature="symbol")
 
@@ -125,7 +123,10 @@ class SKEMPIV2Dataset0429(Dataset):
         PDB_mut_file_path=os.path.join(mut_file_path,"ref.pdb")
         # cov_mut_tensor=torch.load(os.path.join(mut_file_path,"cov_tensor.pt"))
         # cov_mut_tensor=torch.load(os.path.join(mut_file_path,"corr_tensor.pt"))
-        cov_mut_tensor=torch.load(os.path.join(mut_file_path,"rand.pt"))
+        if self.rand:
+            cov_mut_tensor=torch.load(os.path.join(mut_file_path,"rand.pt"))
+        else:
+            cov_mut_tensor=torch.load(os.path.join(mut_file_path,"corr_tensor.pt"))
         pt_mt_G=data.Protein.from_pdb(PDB_mut_file_path, atom_feature=None, bond_feature="length", residue_feature="symbol")
         
         complex_wt_info = parse_pdb(PDB_wt_file_path)
@@ -171,11 +172,6 @@ class SKEMPIV2Dataset0429_mode1(Dataset):
         self.is_train = is_train
         self.knn_num = knn_num
         self.knn_agents_num = knn_agents_num
-        self.graph_construction_model = layers.GraphConstruction(node_layers=[geometry.AlphaCarbonNode()],
-                                                                 edge_layers=[geometry.SequentialEdge(max_distance=1),
-                                                                              geometry.SpatialEdge(
-                                                                     radius=7.0, min_distance=6),
-            geometry.KNNEdge(k=6, min_distance=6)], edge_feature="gearnet")
 
     def __len__(self):
         return self.data_batches

@@ -7,6 +7,8 @@ from torch.utils.data import ConcatDataset, DataLoader, Dataset, random_split
 # from torchvision.transforms import transforms
 
 from .components.skempi2 import SKEMPIV2Dataset,SKEMPIV2Dataset0429,SKEMPIV2Dataset0429_mode1
+from .components.skempi2_v2 import SKEMPIV2Dataset0503
+from .components.skempi2_v3 import SKEMPIV2Dataset0504
 from .components.skempi2lazy import SKEMPIV2DatasetMulConfLazy
 from .components.collate_fn import mycollate_fn
 import pandas as pd
@@ -66,6 +68,7 @@ class SKEMPI2DataModule(LightningDataModule):
         pin_memory: bool ,
         debug: bool ,
         model_mode: int ,
+        rand: bool,
     ) -> None:
         super().__init__()
 
@@ -122,8 +125,10 @@ class SKEMPI2DataModule(LightningDataModule):
         train_df = pd.read_csv(train_path, dtype={"PDB_id": "string"})
         val_df = pd.read_csv(val_path, dtype={"PDB_id": "string"})
         # 这个蛋白太大了 去掉之
-        train_df = train_df[~train_df["PDB_id"].isin(["3VR6", "1KBH"])]
-        val_df = val_df[~val_df["PDB_id"].isin(["3VR6", "1KBH"])]
+        # 4NM8 太大了 去掉 罪过罪过
+        myset={"3VR6", "1KBH",'4NM8', '4PWX', '4GXU', '4LRX'}
+        train_df = train_df[~train_df["PDB_id"].isin(myset)]
+        val_df = val_df[~val_df["PDB_id"].isin(myset)]
         # 测试的时候取一个小的数据集
         if self.hparams.debug:
             train_df = train_df.iloc[0:16]
@@ -138,11 +143,24 @@ class SKEMPI2DataModule(LightningDataModule):
                                             knn_agents_num=self.hparams.knn_agents_num)
             self.data_val = SKEMPIV2Dataset0429_mode1(val_df, is_train=False, knn_num=self.hparams.knn_neighbors_num,
                                         knn_agents_num=self.hparams.knn_agents_num)
-        else:
+        elif self.hparams.model_mode in [6]:
+            self.data_train = SKEMPIV2Dataset0503(train_df, is_train=True, knn_num=self.hparams.knn_neighbors_num,
+                                            knn_agents_num=self.hparams.knn_agents_num,rand=self.hparams.rand)
+            self.data_val = SKEMPIV2Dataset0503(val_df, is_train=False, knn_num=self.hparams.knn_neighbors_num,
+                                        knn_agents_num=self.hparams.knn_agents_num,rand=self.hparams.rand)
+        elif self.hparams.model_mode in [7]:
+            self.data_train = SKEMPIV2Dataset0504(train_df, is_train=True, knn_num=self.hparams.knn_neighbors_num,
+                                            knn_agents_num=self.hparams.knn_agents_num,rand=self.hparams.rand)
+            self.data_val = SKEMPIV2Dataset0504(val_df, is_train=False, knn_num=self.hparams.knn_neighbors_num,
+                                        knn_agents_num=self.hparams.knn_agents_num,rand=self.hparams.rand)
+        
+        elif self.hparams.model_mode in [3,4,5]:
             self.data_train = SKEMPIV2Dataset0429(train_df, is_train=True, knn_num=self.hparams.knn_neighbors_num,
-                                            knn_agents_num=self.hparams.knn_agents_num)
+                                            knn_agents_num=self.hparams.knn_agents_num,rand=self.hparams.rand)
             self.data_val = SKEMPIV2Dataset0429(val_df, is_train=False, knn_num=self.hparams.knn_neighbors_num,
-                                        knn_agents_num=self.hparams.knn_agents_num)
+                                        knn_agents_num=self.hparams.knn_agents_num,rand=self.hparams.rand)
+        else:
+            raise ValueError(f"model_mode {self.hparams.model_mode} is not supported")
 
     def train_dataloader(self) -> DataLoader[Any]:
         """Create and return the train dataloader.

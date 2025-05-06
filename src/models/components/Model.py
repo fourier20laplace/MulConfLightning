@@ -2,8 +2,8 @@ import torch.nn.functional as F
 import torch
 import torch.nn as nn
 from torchdrug import models
-from .conan_fgw.conan_fgw.src.model.fgw.barycenter import fgw_barycenters, normalize_tensor
-from .conan_fgw.conan_fgw.src.model.graph_embeddings.schnet_no_sum import get_list_node_features_batch, get_adj_dense_batch
+# from .conan_fgw.conan_fgw.src.model.fgw.barycenter import fgw_barycenters, normalize_tensor
+# from .conan_fgw.conan_fgw.src.model.graph_embeddings.schnet_no_sum import get_list_node_features_batch, get_adj_dense_batch
 from torch_geometric.utils import to_dense_adj, to_dense_batch
 from torch_geometric.nn.resolver import aggregation_resolver as aggr_resolver
 import numpy as np
