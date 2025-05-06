@@ -12,7 +12,7 @@ from .components.skempi2_v3 import SKEMPIV2Dataset0504
 from .components.skempi2lazy import SKEMPIV2DatasetMulConfLazy
 from .components.collate_fn import mycollate_fn
 import pandas as pd
-
+import os
 
 class SKEMPI2DataModule(LightningDataModule):
     """`LightningDataModule` for the MNIST dataset.
@@ -61,6 +61,7 @@ class SKEMPI2DataModule(LightningDataModule):
 
     def __init__(
         self,
+        data_root_path:str,
         knn_neighbors_num: int ,
         knn_agents_num: int,
         batch_size: int ,
@@ -120,8 +121,8 @@ class SKEMPI2DataModule(LightningDataModule):
         #         lengths=self.hparams.train_val_test_split,
         #         generator=torch.Generator().manual_seed(42),
         #     )
-        train_path = "/home/lmh/projects_dir/Antibody_Mutation/data/SKEMPIv2/skempi_v2_train_filtered.csv"
-        val_path = '/home/lmh/projects_dir/Antibody_Mutation/data/SKEMPIv2/skempi_v2_val_filtered.csv'
+        train_path = os.path.join(self.hparams.data_root_path,"Antibody_Mutation/data/SKEMPIv2/skempi_v2_train_filtered.csv")
+        val_path = os.path.join(self.hparams.data_root_path,'Antibody_Mutation/data/SKEMPIv2/skempi_v2_val_filtered.csv')
         train_df = pd.read_csv(train_path, dtype={"PDB_id": "string"})
         val_df = pd.read_csv(val_path, dtype={"PDB_id": "string"})
         # 这个蛋白太大了 去掉之
@@ -149,9 +150,9 @@ class SKEMPI2DataModule(LightningDataModule):
             self.data_val = SKEMPIV2Dataset0503(val_df, is_train=False, knn_num=self.hparams.knn_neighbors_num,
                                         knn_agents_num=self.hparams.knn_agents_num,rand=self.hparams.rand)
         elif self.hparams.model_mode in [7]:
-            self.data_train = SKEMPIV2Dataset0504(train_df, is_train=True, knn_num=self.hparams.knn_neighbors_num,
+            self.data_train = SKEMPIV2Dataset0504(self.hparams.data_root_path,train_df, is_train=True, knn_num=self.hparams.knn_neighbors_num,
                                             knn_agents_num=self.hparams.knn_agents_num,rand=self.hparams.rand)
-            self.data_val = SKEMPIV2Dataset0504(val_df, is_train=False, knn_num=self.hparams.knn_neighbors_num,
+            self.data_val = SKEMPIV2Dataset0504(self.hparams.data_root_path,val_df, is_train=False, knn_num=self.hparams.knn_neighbors_num,
                                         knn_agents_num=self.hparams.knn_agents_num,rand=self.hparams.rand)
         
         elif self.hparams.model_mode in [3,4,5]:

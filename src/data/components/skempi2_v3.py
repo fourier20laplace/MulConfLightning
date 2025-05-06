@@ -8,9 +8,9 @@ import torch
  #* 版本更新 使用repr
  #* 0504 版本更新 residues of ionterest(roi)
 class SKEMPIV2Dataset0504(Dataset):
-    def __init__(self, data_df, is_train, knn_num, knn_agents_num,rand):
+    def __init__(self, data_root_path,data_df, is_train, knn_num, knn_agents_num,rand):
         super(SKEMPIV2Dataset0504, self).__init__()
-
+        self.data_root_path=data_root_path
         self.data_df = data_df
         self.data_batches = len(data_df['PDB_id'])
         self.is_train = is_train
@@ -37,7 +37,8 @@ class SKEMPIV2Dataset0504(Dataset):
         mutate_info = mutate_info.replace(',', '_')
 #-------------------wt load
         wt_name=str(PDB_id).lower()
-        wt_file_path="/home/lmh/projects_dir/Antibody_Mutation/data/SKEMPIv2/PDBs_fixed/af3_sp2_output/"+f"{wt_name}_sp2_rand0.2/gather"
+        wt_root_path=os.path.join(self.data_root_path,"Antibody_Mutation/data/SKEMPIv2/PDBs_fixed/af3_sp2_output")
+        wt_file_path=os.path.join(wt_root_path,f"{wt_name}_sp2_rand0.2/gather")
 
         if self.rand:
             # repr_wt_tensor=torch.load(os.path.join(wt_file_path,"rand_repr_within_pt_tensor.pt"))
@@ -55,8 +56,9 @@ class SKEMPIV2Dataset0504(Dataset):
         pt_wt_G=data.Protein.from_pdb(PDB_wt_file_path, atom_feature=None, bond_feature="length", residue_feature="symbol")
 #-------------------mut load
         mt_name=wt_name+'_'+mutate_info.lower()
-        mut_file_path="/home/lmh/projects_dir/Antibody_Mutation/data/SKEMPIv2/PDBs_mutated/af3_sp2_output/"+f"{mt_name}_sp2_rand0.2/gather"
-
+        mut_root_path=os.path.join(self.data_root_path,"Antibody_Mutation/data/SKEMPIv2/PDBs_mutated/af3_sp2_output")
+        mut_file_path=os.path.join(mut_root_path,f"{mt_name}_sp2_rand0.2/gather")
+        
         if self.rand:
             # repr_mut_tensor=torch.load(os.path.join(mut_file_path,"rand_repr_within_pt_tensor.pt"))
             # raise NotImplementedError("rand_repr_within_pt_tensor.pt not implemented")

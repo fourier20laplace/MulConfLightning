@@ -1,4 +1,5 @@
 _target_: src.data.skempi_datamodule.SKEMPI2DataModule
+data_root_path: "/home/lmh/projects_dir/"
 knn_neighbors_num: 128
 knn_agents_num: 20
 batch_size: 128 # Needs to be divisible by the number of devices (e.g., if in a distributed setup)
